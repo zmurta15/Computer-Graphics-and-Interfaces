@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script id="vertex-shader" type="x-shader/x-vertex">
+attribute vec4 vPosition;
+attribute vec4 vNormal;
+uniform mat4 mModel;
+uniform mat4 mView;
+uniform mat4 mProjection;
+uniform vec4 mLightCoords;
+varying vec4 fNormal;
+uniform float mPerspetiva;
+uniform float mLightOnOff;
+
+const vec4 lightPosition = vec4(1.0, 1.0, 1.3, 1.0);
+
+uniform mat4 mNormals;
+uniform mat4 mViewNormals;
+
+varying vec3 fLight;
+varying vec3 fViewer;
+
+
+void main(){
+    vec3 posC = (mView * mModel * vPosition).xyz;
+
+    if(mLightOnOff == 0.0) {
+        fNormal = vNormal;
+    }
+    else {
+        fNormal.xyz = (mNormals * vNormal).xyz;
+    }
+    
+
+    if(mLightCoords.w == 0.0) {
+        fLight = normalize((mViewNormals * mLightCoords).xyz);
+    }
+    else {
+        fLight = normalize((mView * mLightCoords).xyz - posC);
+    }
+
+    if (mPerspetiva == 1.0) {
+        fViewer = normalize (-posC);
+    } else {
+        fViewer = vec3(0, 0, 1);
+    }
+    
+    gl_Position = mProjection * mView * mModel * vPosition;
+}
+</script>
+<script id="fragment-shader" type="x-shader/x-fragment">
+precision mediump float;
+varying vec3 fPosition;
+varying vec4 fNormal;
+uniform float mLightOnOff1;
+
+uniform vec3 mMaterialAmb;
+uniform vec3 mMaterialDif;
+uniform vec3 mMaterialSpe;
+uniform float mShininess;
+
+uniform vec3 mLightAmb;
+uniform vec3 mLightDif;
+uniform vec3 mLightSpe;
+
+vec3 ambientColor = mLightAmb * mMaterialAmb;
+vec3 diffuseColor = mLightDif * mMaterialDif;
+vec3 specularColor = mLightSpe * mMaterialSpe;
+
+varying vec3 fLight;
+varying vec3 fViewer;
+
+void main() {
+    vec3 L = normalize(fLight);
+    vec3 V = normalize(fViewer);
+    vec3 N = normalize(fNormal.xyz);
+    vec3 H = normalize(L+V);
+
+    float diffuseFactor = max(dot(L,N), 0.0);
+    vec3 diffuse = diffuseFactor * diffuseColor;
+
+    float specularFactor = pow(max(dot(N,H), 0.0), mShininess);
+    vec3 specular = specularFactor * specularColor;
+
+    if(dot(L,N) < 0.0) {
+        specular = vec3(0.0, 0.0, 0.0);
+    }
+
+    if(mLightOnOff1 == 0.0) {
+        gl_FragColor = fNormal;
+    }
+    else {
+        gl_FragColor = vec4(ambientColor + diffuse + specular, 1.0);
+    }
+}
+</script>
+<script type="text/javascript" src="../Common/webgl-utils.js"></script>
+<script type="text/javascript" src="../Common/initShaders.js"></script>
+<script type="text/javascript" src="../Common/MV.js"></script>
+<script type="text/javascript" src="../Common/cube.js"></script>
+<script type="text/javascript" src="../Common/sphere.js"></script>
+<script type="text/javascript" src="../Common/cylinder.js"></script>
+<script type="text/javascript" src="../Common/torus.js"></script>
+<script type="text/javascript" src="parab.js"></script>
+<script type="text/javascript" src="trabalho3.js"></script>
+</head>
+<body style="margin: 0px">
+    <div>
+    <title>Trabalho3</title>
+    <canvas id="gl-canvas" width="512" height="512">
+        Oops... your browser doesn't support the HTML5 canvas element"
+    </canvas>
+    <div>
+        <button id="new_cube"><b>Cube</b></button>
+        <button id="new_sphere"><b>Sphere</b></button>
+        <button id="new_cylinder"><b>Cylinder</b></button>
+        <button id="new_torus"><b>Torus</b></button>
+        <button id="new_parab"><b>Paraboloid</b></button>
+    </div>
+    <p></p>
+    <div> <b>Projection type:</b>
+    <select id="projection">
+        <option value="0">Orthogonal</option>
+        <option value="1">Axonometric</option>
+        <option value="2">Perspective</option>
+    </select>
+    </div>
+    <div id= "orthoTitle"> <b>Orthogonal type:</b>
+    <select id="orthoType">
+        <option value="0">Main View</option>
+        <option value="1">Plant</option>
+        <option value="2">Right side view</option>
+    </select>
+    </div>
+    <div id = "axoTitle"> <b>Axonometric type:</b>
+    <select id="axoType">
+        <option value="0">Isometry (A = 30º, B = 30º)</option>
+        <option value="1">Dimetry (A = 42º, B = 7º)</option>
+        <option value="2">Trimetry (A = 54º16', B = 23º16')</option>
+        <option value="3">Free</option>
+    </select>
+    <div id = "freeAxoSliders">
+        <b>γ:</b><input id="gamma" type="range" name="gamma" min="-89.9" max="89.9" value="0" step="1"></input>
+        <b>θ:</b><input id="theta" type="range" name="theta" min="-89.9" max="89.9" value="0" step="1"></input>
+    </div>
+    </div>
+    <div id = "dSlider">
+        <b>d:</b><input id="distance" type="range" name="distance" min="0.5" max="10" value="5" step="0.1"></input>
+    </div>
+    <div id = "zInformation">
+        Z-Buffer: OFF
+    </div>
+    <div id = "cullingInformation">
+        Backface Culling: OFF
+    </div>
+    </div>
+    <div style="margin-left: 400px; margin-top: -110px;">
+    <div id = "lightSettings">
+    <div id = "xSliderLight"> 
+        <b>Light Position</b> 
+        <b>X:</b><input id="x" type="range" name="x" min="-1" max="1" value="0" step="0.05"></input>
+        <b>Y:</b><input id="y" type="range" name="y" min="-1" max="1" value="0" step="0.05"></input>
+        <b>Z:</b><input id="z" type="range" name="z" min="-1" max="1" value="0" step="0.05"></input>
+    </div>
+    <div> <b>Light type:</b>
+        <select id="lightType">
+            <option value="0">Punctual</option>
+            <option value="1">Directional</option>
+        </select>
+    </div>
+    <div> 
+        <b>Shininess:</b><input id="shininess" type="range" name="shininess" min="0.5" max="10" value="5" step="0.5"></input>
+    </div>
+    <div style="margin-left: 180px;">
+        <b>Kd </b><input type="color" id="colorPicker2" name="colorPicker2" value="#16c09e">
+        <b>Ks </b><input type="color" id="colorPicker3" name="colorPicker3" value="#e49ba0">
+    </div>
+    <div style="margin-left: 150px; margin-top: 10px;" >
+        <b>Ia </b> <input type="color" id="colorPicker4" name="colorPicker4" value="#1ec887">
+        <b>Id </b><input type="color" id="colorPicker5" name="colorPicker5" value="#a0d9b6">
+        <b>Is </b><input type="color" id="colorPicker6" name="colorPicker6" value="#d4afaf">
+    </div>
+    </div>  
+    </div>
+</body>
+</html>

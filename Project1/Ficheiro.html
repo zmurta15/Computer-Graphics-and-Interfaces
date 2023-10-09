@@ -1,0 +1,144 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<script id="vertex-shader" type="x-shader/x-vertex">
+attribute vec4 vGrid;
+void main() {
+    gl_Position = vGrid;
+}
+</script>
+<script id="vertex-shader2" type="x-shader/x-vertex">
+attribute float vTimeSample;
+uniform float func;
+uniform float funcX;
+uniform float amplitude;
+uniform float secs;
+uniform float verticalMove;
+uniform float phase;
+uniform float time;
+
+float c4Function(float t) {
+    return (0.7/amplitude)*cos(2.0*3.14*261.63*(t+time) + phase);
+}
+float c4MajorFunction(float t) {
+    return (0.7/amplitude)*cos(2.0*3.14*261.63*(t+time) + phase) + (0.7/amplitude)*cos(2.0*3.14*329.63*(t+time) + phase) + (0.7/amplitude)*cos(2.0*3.14*392.00*(t+time) + phase);
+}
+float f4Function(float t) {
+    return (0.7/amplitude)*cos(2.0*3.14*349.23*(t+time) + phase) + (0.7/amplitude)*cos(2.0*3.14*369.99*(t+time) + phase);
+}
+void main() {
+
+    float temp = vTimeSample/9999.0 * 2.0 - 1.0;
+    float x;
+    float y;
+    if(funcX == 0.0) {
+        x = temp;
+     }
+     else if(funcX == 1.0) {
+        x = c4Function((temp)*secs);
+     }
+     else if(funcX == 2.0) {
+         x = c4MajorFunction((temp)*secs);
+     }
+     else {
+        x = f4Function((temp)*secs);
+     }
+
+    if(func == 0.0) {
+       y = c4Function((temp)*secs);
+    }
+    else if(func == 1.0) {
+       y = c4MajorFunction((temp)*secs);
+     }
+    else {
+       y = f4Function((temp)*secs);
+    }
+
+    gl_Position = vec4(x, y + verticalMove, 0.0, 1.0);
+}
+
+</script>
+<script id="fragment-shader" type="x-shader/x-fragment">
+precision mediump float;
+uniform vec4 color;
+void main() {
+    gl_FragColor = color;
+}
+</script>
+<script type="text/javascript" src="../Common/webgl-utils.js"></script>
+<script type="text/javascript" src="../Common/initShaders.js"></script>
+<script type="text/javascript" src="../Common/MV.js"></script>
+<script type="text/javascript" src="Ficheiro.js"></script>
+</head>
+<body>
+    <title>Ficheiro</title>
+    <h1 style="margin-left:350px;">Oscilloscope</h1>
+    <canvas id="gl-canvas" width="900" height="600">
+        Oops... your browser doesn't support the HTML5 canvas element"
+    </canvas>
+    <p></p>
+    <button id ="button1" style="margin-left: 20px;">Show wave 1</button>
+    <label for="vertical" style="margin-left:30px;"><b>Vertical axis:</b></label>
+    <select id="vertical">
+        <option value="0">C4</option>
+        <option value="1">C4 Major</option>
+        <option value="2">F4 & F4#</option>
+    </select>
+    <label for="horizontal" style="margin-left:150px;"><b>Horizontal axis:</b></label>
+    <select id="horizontal">
+        <option value="0">Time</option>
+        <option value="1">C4</option>
+        <option value="2">C4 Major</option>
+        <option value="3">F4 & F4#</option>
+    </select> 
+    <p></p>
+    <span style=" margin-left: 150px;" >
+        Volts/div <input id="slide1" type="range" min ="0" max ="11" step ="1" value="6"/> 
+        <div id= "voltsPrint" style="position: absolute; margin-left: 350px; margin-top: -22px;">10</div> 
+    </span>
+    <span style="margin-left:130px;">
+        secs/div <input id="slide2" type="range" min ="0" max ="15" step ="1" value="8" />
+        <div id= "secsPrint"style="position: absolute; margin-left: 675px; margin-top: -22px;">0.05</div> 
+    </span>
+    <p></p>
+    <span style="margin-left:150px;" >
+        position <input id="slide3" type="range" min ="-1.0" max ="1.0" step ="0.2" value="0"/> 
+    </span>
+    <span style="margin-left:136px;">
+        position <input id="slide4" type="range" min ="-5.0" max ="5.0" step ="1" value="0" />
+    </span>
+    <p></p>
+    <button id="button2" style="margin-left: 20px;">Show wave 2</button>
+    <label for="vertical2" style="margin-left:30px;"><b>Vertical axis for wave 2:</b></label>
+    <select id="vertical2">
+        <option value="0">C4</option>
+        <option value="1">C4 Major</option>
+        <option value="2">F4 & F4#</option>
+    </select>
+    <label for="horizontal2" style="margin-left:75px;"><b>Horizontal axis for wave 2:</b></label>
+    <select id="horizontal2">
+        <option value="0">Time</option>
+        <option value="1">C4</option>
+        <option value="2">C4 Major</option>
+        <option value="3">F4 & F4#</option>
+    </select> 
+    <p></p>
+    <span style=" margin-left: 150px;" >
+        Volts/div <input id="slide1_2" type="range" min ="0" max ="11" step ="1" value="6"/> 
+        <div id= "voltsPrint2" style="position: absolute; margin-left: 350px; margin-top: -22px;">10</div> 
+    </span>
+    <span style="margin-left:130px;">
+        secs/div <input id="slide2_2" type="range" min ="0" max ="15" step ="1" value="8" />
+        <div id= "secsPrint2"style="position: absolute; margin-left: 675px; margin-top: -22px;">0.05</div> 
+    </span>
+    <p></p>
+    <span style="margin-left:150px;" >
+        position <input id="slide3_2" type="range" min ="-1.0" max ="1.0" step ="0.2" value="0"/> 
+    </span>
+    <span style="margin-left:136px;">
+        position <input id="slide4_2" type="range" min ="-10.0" max ="10.0" step ="1.0" value="0" />
+    </span>
+    <p></p>
+</body>
+</html>

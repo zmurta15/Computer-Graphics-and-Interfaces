@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script id="vertex-shader" type="x-shader/x-vertex">
+attribute vec4 vPosition;
+attribute vec4 vColor;
+varying vec4 fColor;
+uniform mat4 ctm;
+void main(){
+    gl_Position = ctm * vPosition;
+    fColor = vColor;
+}
+</script>
+<script id="fragment-shader" type="x-shader/x-fragment">
+precision mediump float;
+varying vec4 fColor;
+void main() {
+    gl_FragColor = fColor;
+}
+</script>
+<script type="text/javascript" src="../Common/webgl-utils.js"></script>
+<script type="text/javascript" src="../Common/initShaders.js"></script>
+<script type="text/javascript" src="../Common/MV.js"></script>
+<script type="text/javascript" src="instance-transform.js"></script>
+</head>
+<body style="background-color: rgb(46, 44, 54); ">  
+    <title>Primitive Instanciation</title>
+    <canvas id="gl-canvas" width="512" height="512"  >
+        Oops... your browser doesn't support the HTML5 canvas element"
+    </canvas>
+    <div>
+        tx: <input id = "tx" type ="range" name ="tx" min = "-1.0" max= "1.0" step="0.05" value ="0" />
+        ty: <input id = "ty" type ="range" name = "ty" min = "-1.0" max= "1.0" step="0.05" value ="0" />
+    </div>
+    <div>
+        rz: <input id = "rz" type ="range" name="rz" min = "-180" max= "180.0" step="1" value ="0" />
+    </div>
+    <div>
+        sx: <input id = "sx" type ="range" name="sx" min = "0.05" max= "2.0" step="0.05" value ="1.0" />
+        sy: <input id = "sy" type ="range" name="sx" min = "0.05" max= "2.0" step="0.05" value ="1.0" />
+    </div>
+    <div>
+        <button id="store">Store and create new</button>
+    </div>
+</body>
+</html>
